@@ -51,7 +51,8 @@ impl Camera {
             glutin::event::VirtualKeyCode::S => self.position = self.position - self.camera_speed * self.front,
             glutin::event::VirtualKeyCode::A => self.position = self.position - glm::normalize(glm::cross(self.front, self.up)) * self.camera_speed,
             glutin::event::VirtualKeyCode::D => self.position = self.position + glm::normalize(glm::cross(self.front, self.up)) * self.camera_speed,
-            glutin::event::VirtualKeyCode::Space => self.up = glm::vec3(self.up.x, self.up.y + 0.05, self.up.z),
+            glutin::event::VirtualKeyCode::Space =>  self.position = glm::vec3(self.position.x, self.position.y + self.camera_speed.y, self.position.z),
+            glutin::event::VirtualKeyCode::LShift => self.position = glm::vec3(self.position.x, self.position.y - self.camera_speed.y, self.position.z),
             _ => ()
         }
     }
