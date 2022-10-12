@@ -7,80 +7,84 @@ pub struct Block {
     pub vertexes: Vec<Vertex>,
 }
 impl Block {
-    pub fn new() -> Block {
+    pub fn new(x: f32, y: f32, z: f32) -> Block {
         Block {
             indices: glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
-            vertexes: Self::get_cube()
+            vertexes: Self::get_cube(x, y, z)
         }
     }
 
-    fn get_cube() -> Vec<Vertex> {
+    fn get_cube(x: f32, y: f32, z: f32) -> Vec<Vertex> {
         let n = 0.5;
+
+        let nx = n + (x * n);
+        let ny = n + (y * n);
+        let nz = n + (z * n);
     
-        let _a = [-n, -n, n];
-        let _b = [n, -n, n];
-        let _c = [n, n, n];
-        let _d = [-n, n, n];
+        let a = [-nx, -ny, nz];
+        let b = [nx, -ny, nz];
+        let c = [nx, ny, nz];
+        let d = [-nx, ny, nz];
     
-        let _e = [-n, -n, -n];
-        let _f = [n, -n, -n];
-        let _g = [n, n, -n];
-        let _h = [-n, n, -n];
+        let e = [-nx, -ny, -nz];
+        let f = [nx, -ny, -nz];
+        let g = [nx, ny, -nz];
+        let h = [-nx, ny, -nz];
     
-        let _tex_a = [0.0, 0.0];
-        let _tex_b = [1.0, 0.0];
-        let _tex_c = [0.0, 1.0];
-        let _tex_e = [1.0, 1.0];
+        let tex_a = [0.0, 0.0];
+        let tex_b = [1.0, 0.0];
+        let tex_c = [0.0, 1.0];
+        let tex_e = [1.0, 1.0];
     
         return vec![
             // Front
-            Vertex { position: _a, tex_coords: _tex_a },
-            Vertex { position: _b, tex_coords: _tex_b },
-            Vertex { position: _d, tex_coords: _tex_c },
+            Vertex { position: a, tex_coords: tex_a },
+            Vertex { position: b, tex_coords: tex_b },
+            Vertex { position: d, tex_coords: tex_c },
     
-            Vertex { position: _d, tex_coords: _tex_c },
-            Vertex { position: _c, tex_coords: _tex_e },
-            Vertex { position: _b, tex_coords: _tex_b },
+            Vertex { position: d, tex_coords: tex_c },
+            Vertex { position: c, tex_coords: tex_e },
+            Vertex { position: b, tex_coords: tex_b },
     
             // Right
-            Vertex { position: _b, tex_coords: _tex_a },
-            Vertex { position: _f, tex_coords: _tex_b },
-            Vertex { position: _c, tex_coords: _tex_c },
-            Vertex { position: _c, tex_coords: _tex_c },
-            Vertex { position: _g, tex_coords: _tex_e },
-            Vertex { position: _f, tex_coords: _tex_b },
+            Vertex { position: b, tex_coords: tex_a },
+            Vertex { position: f, tex_coords: tex_b },
+            Vertex { position: c, tex_coords: tex_c },
+            Vertex { position: c, tex_coords: tex_c },
+            Vertex { position: g, tex_coords: tex_e },
+            Vertex { position: f, tex_coords: tex_b },
     
             // Back
-            Vertex { position: _e, tex_coords: _tex_a },
-            Vertex { position: _f, tex_coords: _tex_b },
-            Vertex { position: _h, tex_coords: _tex_c },
-            Vertex { position: _h, tex_coords: _tex_c },
-            Vertex { position: _g, tex_coords: _tex_e },
-            Vertex { position: _f, tex_coords: _tex_b },
+            Vertex { position: e, tex_coords: tex_a },
+            Vertex { position: f, tex_coords: tex_b },
+            Vertex { position: h, tex_coords: tex_c },
+            Vertex { position: h, tex_coords: tex_c },
+            Vertex { position: g, tex_coords: tex_e },
+            Vertex { position: f, tex_coords: tex_b },
     
             // Left
-            Vertex { position: _a, tex_coords: _tex_a },
-            Vertex { position: _e, tex_coords: _tex_b },
-            Vertex { position: _d, tex_coords: _tex_c },
-            Vertex { position: _d, tex_coords: _tex_c },
-            Vertex { position: _h, tex_coords: _tex_e },
-            Vertex { position: _e, tex_coords: _tex_b },
+            Vertex { position: a, tex_coords: tex_a },
+            Vertex { position: e, tex_coords: tex_b },
+            Vertex { position: d, tex_coords: tex_c },
+            Vertex { position: d, tex_coords: tex_c },
+            Vertex { position: h, tex_coords: tex_e },
+            Vertex { position: e, tex_coords: tex_b },
     
             // Top
-            Vertex { position: _d, tex_coords: _tex_a },
-            Vertex { position: _c, tex_coords: _tex_b },
-            Vertex { position: _h, tex_coords: _tex_c },
-            Vertex { position: _h, tex_coords: _tex_c },
-            Vertex { position: _g, tex_coords: _tex_e },
-            Vertex { position: _c, tex_coords: _tex_b },
+            Vertex { position: d, tex_coords: tex_a },
+            Vertex { position: c, tex_coords: tex_b },
+            Vertex { position: h, tex_coords: tex_c },
+            Vertex { position: h, tex_coords: tex_c },
+            Vertex { position: g, tex_coords: tex_e },
+            Vertex { position: c, tex_coords: tex_b },
     
             // Bottom
-            Vertex { position: _a, tex_coords: _tex_a },
-            Vertex { position: _b, tex_coords: _tex_b },
-            Vertex { position: _e, tex_coords: _tex_c },
-            Vertex { position: _e, tex_coords: _tex_c },
-            Vertex { position: _f, tex_coords: _tex_e },
-            Vertex { position: _b, tex_coords: _tex_b },
+            Vertex { position: a, tex_coords: tex_a },
+            Vertex { position: b, tex_coords: tex_b },
+            Vertex { position: e, tex_coords: tex_c },
+            Vertex { position: e, tex_coords: tex_c },
+            Vertex { position: f, tex_coords: tex_e },
+            Vertex { position: b, tex_coords: tex_b },
         ];
     }
 }

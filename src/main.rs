@@ -23,7 +23,8 @@ fn main() {
     let mut camera = camera::Camera::new(WINDOW_WIDTH, WINDOW_HEIGHT);
 
     let texture = tex::get_texture(&shader.display);
-    let blk = block::Block::new();
+    let blk1 = block::Block::new(0.0, 0.0, 0.0);
+    let blk2 = block::Block::new(0.0, 1.0, 0.0);
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = glutin::event_loop::ControlFlow::Poll;
@@ -44,7 +45,8 @@ fn main() {
 
             glutin::event::Event::MainEventsCleared => {
                 // Main program
-                shader.draw(&camera.get_calculation(), &texture, &blk);
+                shader.draw(&camera.get_calculation(), &texture, &blk1);
+                shader.draw(&camera.get_calculation(), &texture, &blk2);
             },
             _ => (),
         }
