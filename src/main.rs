@@ -7,13 +7,12 @@
 extern crate glm;
 extern crate glium;
 
-use glium::glutin::dpi::{Position, LogicalPosition};
-use glium::glutin::window::CursorGrabMode;
-use glium::{glutin, Surface, uniform, implement_vertex};
-use glium::{texture::SrgbTexture2d, VertexBuffer};
+use glium::{glutin, Surface, uniform};
+use glium::{texture::SrgbTexture2d};
 use glm::{cos, sin};
 use std::io::Cursor;
-
+pub mod block;
+pub mod shader;
 fn main() {
     const WINDOW_WIDTH: u32 = 1280;
     const WINDOW_HEIGHT: u32 = 720;
@@ -25,53 +24,11 @@ fn main() {
     let mut last_y = WINDOW_HEIGHT as f64 / 2.0;
 
     let event_loop = glutin::event_loop::EventLoop::new();
-    let wb = glutin::window::WindowBuilder::new()
-        .with_title(format!("Minecraft RS"))
-        .with_inner_size(glutin::dpi::LogicalSize::new(WINDOW_WIDTH, WINDOW_HEIGHT));
-    let cb = glutin::ContextBuilder::new().with_depth_buffer(24);
-    let display = glium::Display::new(wb, cb, &event_loop).unwrap();
 
-    display.gl_window().window().set_cursor_grab(CursorGrabMode::Locked).expect("Could not lock cursor");
-    display.gl_window().window().set_cursor_visible(false);
+    let shader = shader::Display::new(WINDOW_WIDTH, WINDOW_HEIGHT, &event_loop);
 
-    let position = Position::Logical(LogicalPosition::new(WINDOW_WIDTH as f64 / 2.0, WINDOW_HEIGHT as f64  / 2.0));
-    display.gl_window().window().set_cursor_position(position).expect("Set cursor position fialed");
-
-    let vertex_shader_src = r#"
-        #version 150
-
-        in vec3 position;
-        in vec2 tex_coords;
-        out vec2 v_tex_coords;
-
-        uniform mat4 perspective;
-        uniform mat4 view;
-        uniform mat4 model;
-
-        void main() {
-            mat4 modelview = view * model;
-            v_tex_coords = tex_coords;
-            gl_Position = perspective * modelview * vec4(position, 1.0);
-        }
-    "#;
-
-    let fragment_shader_src = r#"
-        #version 150
-
-        in vec2 v_tex_coords;
-        out vec4 color;
-
-        uniform sampler2D tex;
-
-        void main() {
-            color = texture(tex, v_tex_coords);
-        }
-    "#;
-
-    let program = glium::Program::from_source(&display, vertex_shader_src, fragment_shader_src, None).unwrap();
-    
-    let texture = get_texture(&display);
-    let blk = Block::new(&display);
+    let texture = get_texture(&shader.display);
+    let blk = block::Block::new(&shader.display);
 
     let mut camera_pos = glm::vec3(1.0, 0.0, 3.0);
     let mut camera_front = glm::vec3(0.0, 0.0, -1.0);
@@ -151,7 +108,7 @@ fn main() {
             },
 
             glutin::event::Event::MainEventsCleared => {
-                let mut target = display.draw();
+                let mut target = shader.display.draw();
                 target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
             
                 let model = [
@@ -197,7 +154,7 @@ fn main() {
                     tex: &texture,
                 };
            
-                target.draw(&blk.buffer, &blk.indices, &program, &uniforms, &params).unwrap();
+                target.draw(&blk.buffer, &blk.indices, &shader.program, &uniforms, &params).unwrap();
                 target.finish().unwrap();
             },
             _ => (),
@@ -206,99 +163,11 @@ fn main() {
 }
 
 #[derive(Copy, Clone)]
-struct Vertex {
+pub struct Vertex {
     position: [f32; 3],
     tex_coords: [f32; 2],      
 }
 
-struct Block {
-    indices: glium::index::NoIndices,
-    buffer: VertexBuffer<Vertex>,
-}
-impl Block {
-    pub fn new(display: &glium::Display) -> Block {
-        let cb = Self::get_cube();
-        let buffer = glium::VertexBuffer::new(display, &cb).unwrap();
-        let indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
-
-        Block {
-            indices: indices,
-            buffer: buffer
-        }
-    }
-
-    fn get_cube() -> Vec<Vertex> {
-        let n = 0.5;
-    
-        let _a = [-n, -n, n];
-        let _b = [n, -n, n];
-        let _c = [n, n, n];
-        let _d = [-n, n, n];
-    
-        let _e = [-n, -n, -n];
-        let _f = [n, -n, -n];
-        let _g = [n, n, -n];
-        let _h = [-n, n, -n];
-    
-        let _tex_a = [0.0, 0.0];
-        let _tex_b = [1.0, 0.0];
-        let _tex_c = [0.0, 1.0];
-        let _tex_e = [1.0, 1.0];
-    
-        return vec![
-            // Front
-            Vertex { position: _a, tex_coords: _tex_a },
-            Vertex { position: _b, tex_coords: _tex_b },
-            Vertex { position: _d, tex_coords: _tex_c },
-    
-            Vertex { position: _d, tex_coords: _tex_c },
-            Vertex { position: _c, tex_coords: _tex_e },
-            Vertex { position: _b, tex_coords: _tex_b },
-    
-            // Right
-            Vertex { position: _b, tex_coords: _tex_a },
-            Vertex { position: _f, tex_coords: _tex_b },
-            Vertex { position: _c, tex_coords: _tex_c },
-            Vertex { position: _c, tex_coords: _tex_c },
-            Vertex { position: _g, tex_coords: _tex_e },
-            Vertex { position: _f, tex_coords: _tex_b },
-    
-            // Back
-            Vertex { position: _e, tex_coords: _tex_a },
-            Vertex { position: _f, tex_coords: _tex_b },
-            Vertex { position: _h, tex_coords: _tex_c },
-            Vertex { position: _h, tex_coords: _tex_c },
-            Vertex { position: _g, tex_coords: _tex_e },
-            Vertex { position: _f, tex_coords: _tex_b },
-    
-            // Left
-            Vertex { position: _a, tex_coords: _tex_a },
-            Vertex { position: _e, tex_coords: _tex_b },
-            Vertex { position: _d, tex_coords: _tex_c },
-            Vertex { position: _d, tex_coords: _tex_c },
-            Vertex { position: _h, tex_coords: _tex_e },
-            Vertex { position: _e, tex_coords: _tex_b },
-    
-            // Top
-            Vertex { position: _d, tex_coords: _tex_a },
-            Vertex { position: _c, tex_coords: _tex_b },
-            Vertex { position: _h, tex_coords: _tex_c },
-            Vertex { position: _h, tex_coords: _tex_c },
-            Vertex { position: _g, tex_coords: _tex_e },
-            Vertex { position: _c, tex_coords: _tex_b },
-    
-            // Bottom
-            Vertex { position: _a, tex_coords: _tex_a },
-            Vertex { position: _b, tex_coords: _tex_b },
-            Vertex { position: _e, tex_coords: _tex_c },
-            Vertex { position: _e, tex_coords: _tex_c },
-            Vertex { position: _f, tex_coords: _tex_e },
-            Vertex { position: _b, tex_coords: _tex_b },
-        ];
-    }
-}
-
-implement_vertex!(Vertex, position, tex_coords);
 
 fn get_texture(display: &glium::Display) -> SrgbTexture2d{ 
     let image = image::load(Cursor::new(&include_bytes!("../assets/dirt.png")), image::ImageFormat::Png).unwrap().to_rgba8();
