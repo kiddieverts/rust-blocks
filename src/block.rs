@@ -1,20 +1,16 @@
-use glium::{VertexBuffer, implement_vertex};
+use glium::implement_vertex;
 
 use crate::Vertex;
 
 pub struct Block {
     pub indices: glium::index::NoIndices,
-    pub buffer: VertexBuffer<Vertex>,
+    pub vertexes: Vec<Vertex>,
 }
 impl Block {
-    pub fn new(display: &glium::Display) -> Block {
-        let cb = Self::get_cube();
-        let buffer = glium::VertexBuffer::new(display, &cb).unwrap();
-        let indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
-
+    pub fn new() -> Block {
         Block {
-            indices: indices,
-            buffer: buffer
+            indices: glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList),
+            vertexes: Self::get_cube()
         }
     }
 

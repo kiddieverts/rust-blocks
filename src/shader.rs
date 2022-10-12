@@ -1,12 +1,10 @@
-use std::io::Cursor;
-
 use glium::glutin::dpi::{Position, LogicalPosition};
 use glium::glutin::window::CursorGrabMode;
 use glium::texture::SrgbTexture2d;
 use glium::{glutin, Surface, uniform};
 
-use crate::camera::{Camera, ShaderCalculation};
-use crate::{get_texture, block};
+use crate::block::Block;
+use crate::camera::CameraCalculation;
 
 pub struct Shader
 {
@@ -68,7 +66,7 @@ impl Shader
         }
     }
 
-    pub fn draw(&self, calc: &ShaderCalculation) {
+    pub fn draw(&self, calc: &CameraCalculation, texture: &SrgbTexture2d, blk: &Block) {
         let mut target = self.display.draw();
         target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
     
@@ -81,25 +79,16 @@ impl Shader
             .. Default::default()
         };
 
-        let texture = self.get_texture();
-        let blk = block::Block::new(&self.display);
-
         let uniforms = uniform!{ 
             model: calc.model, 
             view: calc.view, 
             perspective: calc.perspective, 
-            tex: &texture,
+            tex: texture,
         };
-   
-        target.draw(&blk.buffer, &blk.indices, &self.program, &uniforms, &params).unwrap();
-        target.finish().unwrap();
-    }
 
-    fn get_texture(&self) -> SrgbTexture2d{ 
-        let image = image::load(Cursor::new(&include_bytes!("../assets/dirt.png")), image::ImageFormat::Png).unwrap().to_rgba8();
-        let image_dimensions = image.dimensions();
-        let image = glium::texture::RawImage2d::from_raw_rgba_reversed(&image.into_raw(), image_dimensions);
-    
-        return glium::texture::SrgbTexture2d::new(&self.display, image).unwrap();
+        let buffer = glium::VertexBuffer::new(&self.display, &blk.vertexes).unwrap();
+   
+        target.draw(&buffer, &blk.indices, &self.program, &uniforms, &params).unwrap();
+        target.finish().unwrap();
     }
 }

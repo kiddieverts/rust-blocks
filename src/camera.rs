@@ -1,25 +1,22 @@
-use glium::{glutin::{event::VirtualKeyCode, self, dpi::PhysicalPosition}, Surface, uniform};
-use glm::{Vector3, cos, sin};
-
-use crate::shader;
-
-// pub mod shader;
+use glium::{glutin::{event::VirtualKeyCode, self}};
+use glm::{Vector3, cos, sin, Matrix4};
 
 extern crate glm;
 
 pub struct Camera {
-    pub camera_pos: Vector3<f32>,
-    pub camera_front: Vector3<f32>,
-    pub camera_up: Vector3<f32>,
+    pub position: Vector3<f32>,
+    pub front: Vector3<f32>,
+    pub up: Vector3<f32>,
     first_mouse: bool,
     yaw: f64,
     pitch: f64,
     last_x: f64,
     last_y: f64,
-    camera_speed: Vector3<f32>
+    camera_speed: Vector3<f32>,
+    fov: f64
 }
 
-pub struct ShaderCalculation {
+pub struct CameraCalculation {
     pub model: [[f32; 4]; 4],
     pub view: [[f32; 4]; 4],
     pub perspective: [[f32; 4]; 4]
@@ -35,10 +32,11 @@ impl Camera {
             pitch:  0.0,
             last_x:  window_width as f64 / 2.0,
             last_y: window_height as f64 / 2.0,
-            camera_pos: glm::vec3(1.0, 0.0, 3.0),
-            camera_front: glm::vec3(0.0, 0.0, -1.0),
-            camera_up: glm::vec3(0.0, 1.0, 0.0),
-            camera_speed: glm::vec3(x, x, x)
+            position: glm::vec3(1.0, 0.0, 3.0),
+            front: glm::vec3(0.0, 0.0, -1.0),
+            up: glm::vec3(0.0, 1.0, 0.0),
+            fov: 45.0,
+            camera_speed: glm::vec3(x, x, x) // TODO: <--
         };
     }
 
@@ -49,18 +47,15 @@ impl Camera {
             None => return
         };
         match key {
-            glutin::event::VirtualKeyCode::W => self.camera_pos = self.camera_pos + self.camera_speed * self.camera_front,
-            glutin::event::VirtualKeyCode::S => self.camera_pos = self.camera_pos - self.camera_speed * self.camera_front,
-            glutin::event::VirtualKeyCode::A => self.camera_pos = self.camera_pos - glm::normalize(glm::cross(self.camera_front, self.camera_up)) * self.camera_speed,
-            glutin::event::VirtualKeyCode::D => self.camera_pos = self.camera_pos + glm::normalize(glm::cross(self.camera_front, self.camera_up)) * self.camera_speed,
+            glutin::event::VirtualKeyCode::W => self.position = self.position + self.camera_speed * self.front,
+            glutin::event::VirtualKeyCode::S => self.position = self.position - self.camera_speed * self.front,
+            glutin::event::VirtualKeyCode::A => self.position = self.position - glm::normalize(glm::cross(self.front, self.up)) * self.camera_speed,
+            glutin::event::VirtualKeyCode::D => self.position = self.position + glm::normalize(glm::cross(self.front, self.up)) * self.camera_speed,
             _ => ()
         }
     }
 
-    pub fn process_mouse(&mut self, position: PhysicalPosition<f64>) {
-        let xpos = position.x;
-        let ypos = position.y;
-
+    pub fn process_mouse(&mut self, xpos: f64, ypos: f64) {
         if self.first_mouse
         {
             self.last_x = xpos;
@@ -93,14 +88,10 @@ impl Camera {
         let _z = (sin(glm::radians(self.yaw)) * cos(glm::radians(self.pitch))) as f32;
     
         let front = glm::vec3(_x, _y, _z);
-        self.camera_front = glm::normalize(front);
+        self.front = glm::normalize(front);
     }
 
-    pub fn get_calculation(&self) -> ShaderCalculation{
-        // let mut target = shader.display.draw();
-        // target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
-    
-        // [[f32; 4]; 4]
+    pub fn get_calculation(&self) -> CameraCalculation{
         let model = [
             [1.0, 0.0, 0.0, 0.0],
             [0.0, 1.0, 0.0, 0.0],
@@ -108,47 +99,28 @@ impl Camera {
             [0.0, 0.0, 0.0, 1.0f32],
         ];
    
-        // let params = glium::DrawParameters {
-        //     depth: glium::Depth {
-        //         test: glium::draw_parameters::DepthTest::IfLess,
-        //         write: true,
-        //         .. Default::default()
-        //     },
-        //     .. Default::default()
-        // };
+        let view = to_vec(glm::ext::look_at(self.position, self.position + self.front, self.up));
 
-        let view_temp = glm::ext::look_at(self.camera_pos, self.camera_pos + self.camera_front, self.camera_up);
+        let perspective = to_vec(glm::ext::perspective(
+            glm::radians(self.fov as f32), 
+            1024.0 as f32 / 720.0 as f32, // TODO: Aspect ratio should not be hardcoded
+            0.1 as f32,
+            100.0 as f32));
 
-        let view = [
-            [view_temp.c0.x, view_temp.c0.y, view_temp.c0.z, view_temp.c0.w],
-            [view_temp.c1.x, view_temp.c1.y, view_temp.c1.z, view_temp.c1.w],
-            [view_temp.c2.x, view_temp.c2.y, view_temp.c2.z, view_temp.c2.w],
-            [view_temp.c3.x, view_temp.c3.y, view_temp.c3.z, view_temp.c3.w]
-        ];
-
-        let fov = 45.0;
-
-        let projection_temp = glm::ext::perspective(glm::radians(fov), 1024.0 / 720.0, 0.1, 100.0);
-
-        let perspective = [
-            [projection_temp.c0.x as f32, projection_temp.c0.y as f32, projection_temp.c0.z as f32, projection_temp.c0.w as f32],
-            [projection_temp.c1.x as f32, projection_temp.c1.y as f32, projection_temp.c1.z as f32, projection_temp.c1.w as f32],
-            [projection_temp.c2.x as f32, projection_temp.c2.y as f32, projection_temp.c2.z as f32, projection_temp.c2.w as f32],
-            [projection_temp.c3.x as f32, projection_temp.c3.y as f32, projection_temp.c3.z as f32, projection_temp.c3.w as f32]
-        ];
-
-        ShaderCalculation {
+        CameraCalculation {
             view: view,
             model: model,
             perspective: perspective
         }
-
-        // let uniforms = uniform!{ 
-        //     model: model, 
-        //     view: view, 
-        //     perspective: perspective, 
-        //     tex: &texture,
-        // };
     }
+}
 
+
+fn to_vec(input: Matrix4<f32>) -> [[f32;4]; 4] {
+    [
+        [input.c0.x, input.c0.y, input.c0.z, input.c0.w],
+        [input.c1.x, input.c1.y, input.c1.z, input.c1.w],
+        [input.c2.x, input.c2.y, input.c2.z, input.c2.w],
+        [input.c3.x, input.c3.y, input.c3.z, input.c3.w]
+    ]
 }
