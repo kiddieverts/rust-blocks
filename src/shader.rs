@@ -1,15 +1,14 @@
 use glium::glutin::dpi::{Position, LogicalPosition};
-use glium::glutin::window::CursorGrabMode;
 use glium::texture::SrgbTexture2d;
-use glium::{glutin, Surface, uniform};
+use glium::{glutin, Surface, uniform, Frame, VertexBuffer};
 
-use crate::block::Block;
-use crate::camera::CameraCalculation;
+use crate::Vertex;
+use crate::camera::Camera;
 
 pub struct Shader
 {
     pub program: glium::Program,
-    pub display: glium::Display
+    pub display: glium::Display,
 }
 
 impl Shader
@@ -20,6 +19,10 @@ impl Shader
             .with_inner_size(glutin::dpi::LogicalSize::new(window_width, window_height));
         let cb = glutin::ContextBuilder::new().with_depth_buffer(24);
         let display = glium::Display::new(wb, cb, event_loop).unwrap();
+
+        // let monitor_handle = display.gl_window().window().available_monitors().next().unwrap();
+        // let fs = glium::glutin::window::Fullscreen::Borderless(Some(monitor_handle));
+        // display.gl_window().window().set_fullscreen(Some(fs));
 
         display.gl_window().window().set_cursor_grab(CursorGrabMode::Locked).expect("Could not lock cursor");
         display.gl_window().window().set_cursor_visible(false);
@@ -62,14 +65,20 @@ impl Shader
 
         Shader {
             program: program,
-            display: display
+            display: display,
         }
     }
 
-    pub fn draw(&self, calc: &CameraCalculation, texture: &SrgbTexture2d, blk: &Block) {
-        let mut target = self.display.draw();
-        target.clear_color_and_depth((0.0, 0.0, 1.0, 1.0), 1.0);
+    pub fn render_block(&self, camera: &Camera, texture: &SrgbTexture2d, mut target: Frame, buffer: &VertexBuffer<Vertex>) -> Frame {
+        let calc = camera.get_calculation();
     
+        let uniforms = uniform!{ 
+            model: calc.model, 
+            view: calc.view, 
+            perspective: calc.perspective, 
+            tex: texture,
+        };
+
         let params = glium::DrawParameters {
             depth: glium::Depth {
                 test: glium::draw_parameters::DepthTest::IfLess,
@@ -79,16 +88,11 @@ impl Shader
             .. Default::default()
         };
 
-        let uniforms = uniform!{ 
-            model: calc.model, 
-            view: calc.view, 
-            perspective: calc.perspective, 
-            tex: texture,
-        };
-
-        let buffer = glium::VertexBuffer::new(&self.display, &blk.vertexes).unwrap();
-   
-        target.draw(&buffer, &blk.indices, &self.program, &uniforms, &params).unwrap();
-        target.finish().unwrap();
+        let indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
+    
+        target.draw(buffer, &indices, &self.program, &uniforms, &params).unwrap();
+    
+        return target;
     }
+    
 }

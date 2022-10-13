@@ -13,7 +13,9 @@ pub struct Camera {
     last_x: f64,
     last_y: f64,
     camera_speed: Vector3<f32>,
-    fov: f64
+    fov: f64,
+    pub window_width: u32,
+    pub window_height: u32,
 }
 
 pub struct CameraCalculation {
@@ -36,7 +38,9 @@ impl Camera {
             front: glm::vec3(0.0, 0.0, -1.0),
             up: glm::vec3(0.0, 1.0, 0.0),
             fov: 45.0,
-            camera_speed: glm::vec3(x, x, x) // TODO: <--
+            camera_speed: glm::vec3(x, x, x), // TODO: <--
+            window_width: window_width,
+            window_height: window_height
         };
     }
 
@@ -58,18 +62,16 @@ impl Camera {
     }
 
     pub fn process_mouse(&mut self, xpos: f64, ypos: f64) {
-        if self.first_mouse
-        {
-            self.last_x = xpos;
-            self.last_y = ypos;
+        if (self.first_mouse) {
             self.first_mouse = false;
         }
-    
-        let mut xoffset = xpos - self.last_x;
-        let mut yoffset = self.last_y - ypos; // reversed since y-coordinates go from bottom to top
+
+        let mut xoffset = xpos - self.window_width as f64 / 2.0;
+        let mut yoffset = self.window_height as f64 / 2.0 - ypos;
+
         self.last_x = xpos;
         self.last_y = ypos;
-    
+
         let sensitivity = 0.1; // change this value to your liking
         xoffset *= sensitivity;
         yoffset *= sensitivity;
@@ -105,7 +107,7 @@ impl Camera {
 
         let perspective = to_vec(glm::ext::perspective(
             glm::radians(self.fov as f32), 
-            1024.0 as f32 / 720.0 as f32, // TODO: Aspect ratio should not be hardcoded
+            self.window_width as f32 / self.window_height as f32,  
             0.1 as f32,
             100.0 as f32));
 
