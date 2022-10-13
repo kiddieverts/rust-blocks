@@ -1,4 +1,5 @@
 use glium::glutin::dpi::{Position, LogicalPosition};
+use glium::glutin::window::CursorGrabMode;
 use glium::texture::SrgbTexture2d;
 use glium::{glutin, Surface, uniform, Frame, VertexBuffer};
 
