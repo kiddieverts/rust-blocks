@@ -11,11 +11,8 @@ pub struct Camera {
     pub window_height: u32,
     pub delta_time: f32,
     pub last_frame: f32,
-    first_mouse: bool,
     yaw: f64,
     pitch: f64,
-    last_x: f64,
-    last_y: f64,
     fov: f64,
 }
 
@@ -28,15 +25,12 @@ pub struct CameraCalculation {
 impl Camera {
     pub fn new(window_width: u32, window_height: u32) -> Camera {
         return Camera {
-            first_mouse: true,
-            yaw: -90.0,	// yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
+            yaw: -90.0,	// Yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
             pitch:  0.0,
-            last_x: window_width as f64 / 2.0,
-            last_y: window_height as f64 / 2.0,
             position: glm::vec3(1.0, 0.0, 3.0),
             front: glm::vec3(0.0, 0.0, -1.0),
             up: glm::vec3(0.0, 1.0, 0.0),
-            fov: 45.0, // field of view
+            fov: 45.0, // Field of view
             window_width: window_width,
             window_height: window_height,
             last_frame: 0.0,
@@ -44,12 +38,12 @@ impl Camera {
         };
     }
 
-    pub fn process_keyboard(&mut self, virtual_keycode: Option<VirtualKeyCode>) 
-    {
+    pub fn process_keyboard(&mut self, virtual_keycode: Option<VirtualKeyCode>) {
         // TODO: The player should be able to use more than one button at the time. 
 
-        let x = 7.0 * self.delta_time;
-        let camera_speed = glm::vec3(x, x, x); 
+        let sensitivity = 7.0; // Change this value to your liking
+        let speed = self.delta_time * sensitivity;
+        let camera_speed = glm::vec3(speed, speed, speed); 
 
         let key = match virtual_keycode {
             Some(key) => key,
@@ -70,24 +64,17 @@ impl Camera {
         let xpos = x / 2.0;
         let ypos = y / 2.0;
 
-        // if self.first_mouse {
-        //     self.first_mouse = false;
-        // }
-
         let mut xoffset = xpos - self.window_width as f64 / 2.0;
         let mut yoffset = self.window_height as f64 / 2.0 - ypos;
 
-        self.last_x = xpos;
-        self.last_y = ypos;
-
-        let sensitivity = 0.1; // change this value to your liking
+        let sensitivity = 0.1; // Change this value to your liking
         xoffset *= sensitivity;
         yoffset *= sensitivity;
     
         self.yaw += xoffset;
         self.pitch += yoffset;
     
-        // make sure that when pitch is out of bounds, screen doesn't get flipped
+        // Make sure that when pitch is out of bounds, screen doesn't get flipped
         if self.pitch > 89.0 {
             self.pitch = 89.0;
         }
@@ -95,11 +82,16 @@ impl Camera {
             self.pitch = -89.0;
         }
 
-        let _x = (cos(glm::radians(self.yaw)) * cos(glm::radians(self.pitch))) as f32;
-        let _y = sin(glm::radians(self.pitch)) as f32;
-        let _z = (sin(glm::radians(self.yaw)) * cos(glm::radians(self.pitch))) as f32;
+        let yaw_radians = glm::radians(self.yaw);
+        let pitch_radians = glm::radians(self.pitch);
+        let cos_pitch_radians = cos(pitch_radians);
     
-        let front = glm::vec3(_x, _y, _z);
+        let front = glm::vec3(
+            (cos(yaw_radians) * cos_pitch_radians) as f32,
+            sin(pitch_radians) as f32,
+            (sin(yaw_radians) * cos_pitch_radians) as f32
+        );
+
         self.front = glm::normalize(front);
     }
 
