@@ -7,16 +7,16 @@ pub struct Camera {
     pub position: Vector3<f32>,
     pub front: Vector3<f32>,
     pub up: Vector3<f32>,
+    pub window_width: u32,
+    pub window_height: u32,
+    pub delta_time: f32,
+    pub last_frame: f32,
     first_mouse: bool,
     yaw: f64,
     pitch: f64,
     last_x: f64,
     last_y: f64,
     fov: f64,
-    pub window_width: u32,
-    pub window_height: u32,
-    pub delta_time: f32,
-    pub last_frame: f32,
 }
 
 pub struct CameraCalculation {
@@ -114,14 +114,9 @@ impl Camera {
             0.1 as f32,
             100.0 as f32));
 
-        CameraCalculation {
-            view: view,
-            model: model,
-            perspective: perspective
-        }
+        CameraCalculation { view, model, perspective }
     }
 }
-
 
 fn to_vec(input: Matrix4<f32>) -> [[f32;4]; 4] {
     [

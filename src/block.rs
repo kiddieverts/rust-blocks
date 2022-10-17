@@ -5,8 +5,9 @@ use crate::{Vertex, Sides};
 pub struct Block {
     pub vertices: Vec<Vertex>,
 }
+
 impl Block {
-    pub fn get_cube(_x: i32, _y: i32, _z: i32, sides: Sides) -> Vec<Vertex> {
+    pub fn get_vertices(_x: i32, _y: i32, _z: i32, sides: Sides) -> Vec<Vertex> {
         let w: f32 = 0.5;
 
         let x = _x as f32 * w;

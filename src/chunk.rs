@@ -41,7 +41,7 @@ impl Chunk {
             for z in 0..chunk_weight {
                 for x in 0..chunk_weight {
                     let sides = Chunk::get_sides(i, &chunk);
-                    let block = block::Block::get_cube(x, y, -z, sides);
+                    let block = block::Block::get_vertices(x, y, -z, sides);
                     for item in 0..block.len() {
                         if chunk.value[&i].is_visible() {
                             v.push(block[item]);
