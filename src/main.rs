@@ -82,8 +82,6 @@ pub struct Vertex {
 }
 
 #[derive(PartialEq)]
-#[derive(Eq)]
-#[derive(Hash)]
 pub enum BlockId {
     Air,
     Plank,
@@ -94,7 +92,6 @@ impl BlockId {
     pub fn is_transparent(&self) -> bool { self == &BlockId::Air }
 }
 
-#[derive(Debug)]
 pub struct Sides {
     top: bool,
     bottom: bool,
