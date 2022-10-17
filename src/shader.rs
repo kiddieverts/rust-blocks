@@ -1,10 +1,10 @@
 use glium::glutin::dpi::{Position, LogicalPosition};
 use glium::glutin::window::CursorGrabMode;
 use glium::texture::SrgbTexture2d;
-use glium::{glutin, Surface, uniform, Frame, VertexBuffer};
+use glium::{glutin, Surface, uniform};
 
 use crate::Vertex;
-use crate::camera::Camera;
+use crate::camera::CameraCalculation;
 
 pub struct Shader
 {
@@ -75,9 +75,10 @@ impl Shader
         }
     }
 
-    pub fn render_block(&self, camera: &Camera, texture: &SrgbTexture2d, mut target: Frame, buffer: &VertexBuffer<Vertex>) -> Frame {
-        let calc = camera.get_calculation();
-    
+    pub fn render_block(&self, calc: &CameraCalculation, texture: &SrgbTexture2d, vertices: &Vec<Vertex>) {
+        let mut target = self.display.draw();
+        target.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0);
+
         let uniforms = uniform!{ 
             model: calc.model, 
             view: calc.view, 
@@ -95,10 +96,12 @@ impl Shader
         };
 
         let indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
-    
-        target.draw(buffer, &indices, &self.program, &uniforms, &params).unwrap();
-    
-        return target;
+        
+        let buffer = glium::VertexBuffer::new(&self.display, &vertices).unwrap();
+        target.draw(&buffer, &indices, &self.program, &uniforms, &params).unwrap();
+
+        target.finish().unwrap();
+
     }
     
 }

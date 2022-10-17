@@ -1,18 +1,16 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::{BlockId, Sides, block, Vertex};
+use crate::{BlockId, Sides, block, Vertex, constants::{CHUNK_WIDTH, CHUNK_HEIGHT}};
 
 pub struct Chunk {
    pub value: HashMap<i32, BlockId>,
 }
 
 impl Chunk {
-    fn get_width_and_height() -> (i32, i32) {(4, 8) }
-
     pub fn new() -> Chunk {
         let mut value: HashMap<i32, BlockId> = HashMap::new();
 
-        let (w, h) = Chunk::get_width_and_height();
+        let (w, h) = (CHUNK_WIDTH, CHUNK_HEIGHT);
 
         for i in 0..(w * w * h) {
             if i % 3 == 0 {
@@ -26,16 +24,16 @@ impl Chunk {
         Chunk { value }
     }
 
-    pub fn get_vertices( chunk: Chunk) -> Vec<Vertex> {
+    pub fn get_vertices(chunk: &Chunk) -> Vec<Vertex> {
         let mut vertices: Vec<Vertex> = vec![];
         let mut i = 0;
 
-        let (w, h) = Chunk::get_width_and_height();
+        let (w, h) = (CHUNK_WIDTH, CHUNK_HEIGHT);
 
         for y in 0..h {
             for z in 0..w {
                 for x in 0..w {
-                    let sides = Chunk::get_sides(i, &chunk);
+                    let sides = Chunk::get_sides(i, chunk);
                     let block = block::Block::get_vertices(x, y, -z, sides);
                     for item in 0..block.len() {
                         if chunk.value[&i].is_visible() {
@@ -50,7 +48,7 @@ impl Chunk {
     }
 
     fn get_sides(i: i32, chunk: &Chunk) -> Sides {
-        let (chunk_width, chunk_height) = Chunk::get_width_and_height();
+        let (chunk_width, chunk_height) = (CHUNK_WIDTH, CHUNK_HEIGHT);
 
         let max = chunk_width * chunk_width * chunk_height;
 

@@ -64,7 +64,10 @@ impl Camera {
         }
     }
 
-    pub fn process_mouse(&mut self, xpos: f64, ypos: f64) {
+    pub fn process_mouse(&mut self, x: f64, y: f64) {
+        let xpos = x / 2.0;
+        let ypos = y / 2.0;
+
         if self.first_mouse {
             self.first_mouse = false;
         }
