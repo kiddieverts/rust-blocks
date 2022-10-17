@@ -12,10 +12,11 @@ pub struct Camera {
     pitch: f64,
     last_x: f64,
     last_y: f64,
-    camera_speed: Vector3<f32>,
     fov: f64,
     pub window_width: u32,
     pub window_height: u32,
+    pub delta_time: f32,
+    pub last_frame: f32,
 }
 
 pub struct CameraCalculation {
@@ -26,8 +27,6 @@ pub struct CameraCalculation {
 
 impl Camera {
     pub fn new(window_width: u32, window_height: u32) -> Camera {
-        let x = 0.05;
-
         return Camera {
             first_mouse: true,
             yaw: -90.0,	// yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
@@ -38,25 +37,29 @@ impl Camera {
             front: glm::vec3(0.0, 0.0, -1.0),
             up: glm::vec3(0.0, 1.0, 0.0),
             fov: 45.0,
-            camera_speed: glm::vec3(x, x, x), // TODO: <--
             window_width: window_width,
-            window_height: window_height
+            window_height: window_height,
+            last_frame: 0.0,
+            delta_time: 0.0
         };
     }
 
     pub fn process_keyboard(&mut self, virtual_keycode: Option<VirtualKeyCode>) 
     {
+        let x = 7.0 * self.delta_time;
+        let camera_speed = glm::vec3(x, x, x); 
+
         let key = match virtual_keycode {
             Some(key) => key,
             None => return
         };
         match key {
-            glutin::event::VirtualKeyCode::W => self.position = self.position + self.camera_speed * self.front,
-            glutin::event::VirtualKeyCode::S => self.position = self.position - self.camera_speed * self.front,
-            glutin::event::VirtualKeyCode::A => self.position = self.position - glm::normalize(glm::cross(self.front, self.up)) * self.camera_speed,
-            glutin::event::VirtualKeyCode::D => self.position = self.position + glm::normalize(glm::cross(self.front, self.up)) * self.camera_speed,
-            glutin::event::VirtualKeyCode::Space =>  self.position = glm::vec3(self.position.x, self.position.y + self.camera_speed.y, self.position.z),
-            glutin::event::VirtualKeyCode::LShift => self.position = glm::vec3(self.position.x, self.position.y - self.camera_speed.y, self.position.z),
+            glutin::event::VirtualKeyCode::W => self.position = self.position + camera_speed * self.front,
+            glutin::event::VirtualKeyCode::S => self.position = self.position - camera_speed * self.front,
+            glutin::event::VirtualKeyCode::A => self.position = self.position - glm::normalize(glm::cross(self.front, self.up)) * camera_speed,
+            glutin::event::VirtualKeyCode::D => self.position = self.position + glm::normalize(glm::cross(self.front, self.up)) * camera_speed,
+            glutin::event::VirtualKeyCode::Space =>  self.position = glm::vec3(self.position.x, self.position.y + camera_speed.y / 2.0, self.position.z),
+            glutin::event::VirtualKeyCode::LShift => self.position = glm::vec3(self.position.x, self.position.y - camera_speed.y / 2.0, self.position.z),
             _ => ()
         }
     }
