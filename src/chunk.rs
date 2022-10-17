@@ -8,6 +8,8 @@ pub struct Chunk {
 
 impl Chunk {
     pub fn new() -> Chunk {
+        // Create a chunk with a predefined pattern.
+
         let mut value: HashMap<i32, BlockId> = HashMap::new();
 
         let (w, h) = (CHUNK_WIDTH, CHUNK_HEIGHT);
@@ -24,7 +26,7 @@ impl Chunk {
         Chunk { value }
     }
 
-    pub fn get_vertices(chunk: &Chunk) -> Vec<Vertex> {
+    pub fn get_vertices(&self) -> Vec<Vertex> {
         let mut vertices: Vec<Vertex> = vec![];
         let mut i = 0;
 
@@ -33,10 +35,10 @@ impl Chunk {
         for y in 0..h {
             for z in 0..w {
                 for x in 0..w {
-                    let sides = Chunk::get_sides(i, chunk);
+                    let sides = self.get_sides(i);
                     let block = block::Block::get_vertices(x, y, -z, sides);
                     for item in 0..block.len() {
-                        if chunk.value[&i].is_visible() {
+                        if self.value[&i].is_visible() {
                             vertices.push(block[item]);
                         }
                     }
@@ -47,7 +49,7 @@ impl Chunk {
         return vertices;
     }
 
-    fn get_sides(i: i32, chunk: &Chunk) -> Sides {
+    fn get_sides(&self, i: i32) -> Sides {
         let (chunk_width, chunk_height) = (CHUNK_WIDTH, CHUNK_HEIGHT);
 
         let max = chunk_width * chunk_width * chunk_height;
@@ -56,14 +58,14 @@ impl Chunk {
             if i % chunk_width == 0 {
                 return true;
             }
-            return chunk.value[&(i -1)].is_transparent();
+            return self.value[&(i -1)].is_transparent();
         };
 
         let get_right = || {
             if (i+1) % chunk_width == 0 {
                 return true;
             }
-            return chunk.value[&(i +1)].is_transparent();
+            return self.value[&(i +1)].is_transparent();
         };
 
         let get_front = || {
@@ -77,7 +79,7 @@ impl Chunk {
             if res == true {
                 return res;
             }
-            return chunk.value[&(i - chunk_width)].is_transparent();
+            return self.value[&(i - chunk_width)].is_transparent();
         };
 
         let get_back = || {
@@ -100,7 +102,7 @@ impl Chunk {
                 return false;
             }
 
-            return chunk.value[&(i + chunk_width)].is_transparent();
+            return self.value[&(i + chunk_width)].is_transparent();
         };
 
         let get_top = || {
@@ -112,7 +114,7 @@ impl Chunk {
                 return false;
             }
         
-            return chunk.value[&(i + chunk_width * chunk_width)].is_transparent();
+            return self.value[&(i + chunk_width * chunk_width)].is_transparent();
         };
 
         let get_bottom = || {
@@ -124,7 +126,7 @@ impl Chunk {
                 return false;
             }
 
-            return chunk.value[&(i - chunk_width * chunk_width)].is_transparent();
+            return self.value[&(i - chunk_width * chunk_width)].is_transparent();
         };
 
         return Sides { 

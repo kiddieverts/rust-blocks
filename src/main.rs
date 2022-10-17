@@ -56,7 +56,7 @@ fn main() {
                 camera.delta_time = time_passed.clone() - camera.last_frame;
                 camera.last_frame = time_passed.clone();
 
-                let vertices = Chunk::get_vertices(&chunk);
+                let vertices = chunk.get_vertices();
 
                 shader.render_block(&camera.get_calculation(), &texture, &vertices);
                

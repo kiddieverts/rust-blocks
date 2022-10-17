@@ -77,6 +77,7 @@ impl Shader
 
     pub fn render_block(&self, calc: &CameraCalculation, texture: &SrgbTexture2d, vertices: &Vec<Vertex>) {
         let mut target = self.display.draw();
+
         target.clear_color_and_depth((0.0, 0.0, 0.0, 1.0), 1.0);
 
         let uniforms = uniform!{ 
@@ -98,10 +99,10 @@ impl Shader
         let indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
         
         let buffer = glium::VertexBuffer::new(&self.display, &vertices).unwrap();
+
         target.draw(&buffer, &indices, &self.program, &uniforms, &params).unwrap();
 
         target.finish().unwrap();
-
     }
     
 }
