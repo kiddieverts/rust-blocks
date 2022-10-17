@@ -31,12 +31,12 @@ impl Camera {
             first_mouse: true,
             yaw: -90.0,	// yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
             pitch:  0.0,
-            last_x:  window_width as f64 / 2.0,
+            last_x: window_width as f64 / 2.0,
             last_y: window_height as f64 / 2.0,
             position: glm::vec3(1.0, 0.0, 3.0),
             front: glm::vec3(0.0, 0.0, -1.0),
             up: glm::vec3(0.0, 1.0, 0.0),
-            fov: 45.0,
+            fov: 45.0, // field of view
             window_width: window_width,
             window_height: window_height,
             last_frame: 0.0,
@@ -46,6 +46,8 @@ impl Camera {
 
     pub fn process_keyboard(&mut self, virtual_keycode: Option<VirtualKeyCode>) 
     {
+        // TODO: The player should be able to use more than one button at the time. 
+
         let x = 7.0 * self.delta_time;
         let camera_speed = glm::vec3(x, x, x); 
 
@@ -68,9 +70,9 @@ impl Camera {
         let xpos = x / 2.0;
         let ypos = y / 2.0;
 
-        if self.first_mouse {
-            self.first_mouse = false;
-        }
+        // if self.first_mouse {
+        //     self.first_mouse = false;
+        // }
 
         let mut xoffset = xpos - self.window_width as f64 / 2.0;
         let mut yoffset = self.window_height as f64 / 2.0 - ypos;
