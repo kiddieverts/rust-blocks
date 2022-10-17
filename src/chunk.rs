@@ -7,14 +7,12 @@ pub struct Chunk {
 }
 
 impl Chunk {
-    fn get_chunk_width() -> i32 { 4 }
-    fn get_chunk_height() -> i32 { 8 }
+    fn get_width_and_height() -> (i32, i32) {(4, 8) }
 
     pub fn new() -> Chunk {
         let mut value: HashMap<i32, BlockId> = HashMap::new();
 
-        let w = Chunk::get_chunk_width();
-        let h = Chunk::get_chunk_height();
+        let (w, h) = Chunk::get_width_and_height();
 
         for i in 0..(w * w * h) {
             if i % 3 == 0 {
@@ -25,38 +23,34 @@ impl Chunk {
             }
         }
 
-        return Chunk {
-            value
-        }
+        Chunk { value }
     }
 
-    pub fn get_vertexes( chunk: Chunk) -> Vec<Vertex> {
-        let mut v: Vec<Vertex> = vec![];
+    pub fn get_vertices( chunk: Chunk) -> Vec<Vertex> {
+        let mut vertices: Vec<Vertex> = vec![];
         let mut i = 0;
 
-        let chunk_weight: i32 = Chunk::get_chunk_width();
-        let chunk_height: i32 = Chunk::get_chunk_height();
-    
-        for y in 0..chunk_height {
-            for z in 0..chunk_weight {
-                for x in 0..chunk_weight {
+        let (w, h) = Chunk::get_width_and_height();
+
+        for y in 0..h {
+            for z in 0..w {
+                for x in 0..w {
                     let sides = Chunk::get_sides(i, &chunk);
                     let block = block::Block::get_vertices(x, y, -z, sides);
                     for item in 0..block.len() {
                         if chunk.value[&i].is_visible() {
-                            v.push(block[item]);
+                            vertices.push(block[item]);
                         }
                     }
                     i = i +1;
                 }
             }
         }
-        return v;
+        return vertices;
     }
 
     fn get_sides(i: i32, chunk: &Chunk) -> Sides {
-        let chunk_width: i32 = Chunk::get_chunk_width();
-        let chunk_height: i32 = Chunk::get_chunk_height();
+        let (chunk_width, chunk_height) = Chunk::get_width_and_height();
 
         let max = chunk_width * chunk_width * chunk_height;
 

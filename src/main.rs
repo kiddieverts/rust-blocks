@@ -61,7 +61,7 @@ fn main() {
 
     let chunk = chunk::Chunk::new();
 
-    let vertexes = chunk::Chunk::get_vertexes(chunk);
+    let vertexes = chunk::Chunk::get_vertices(chunk);
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = glutin::event_loop::ControlFlow::Poll;
