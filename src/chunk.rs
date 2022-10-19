@@ -1,23 +1,21 @@
-use std::collections::{HashMap, HashSet};
-
 use crate::{BlockId, Sides, block::{Block}, Vertex, constants::{CHUNK_WIDTH, CHUNK_HEIGHT}};
 
 pub struct Chunk {
-   pub value: HashMap<i32, BlockId> // TODO: Find a better performing datastructure. Probably use pointers
+   pub value: Vec<BlockId> 
 }
 
 impl Chunk {
     pub fn new() -> Chunk {
         // Create a chunk with a predefined pattern.
 
-        let mut value: HashMap<i32, BlockId> = HashMap::new();
+        let mut value: Vec<BlockId> = vec![];
 
         for i in 0..(CHUNK_WIDTH * CHUNK_WIDTH * CHUNK_HEIGHT) {
-            if i % 3 == 0 {
-                value.insert(i, BlockId::Plank);
+            if i % 6 == 0 {
+                value.push(BlockId::Plank);
             }
             else {
-                value.insert(i, BlockId::Air);
+                value.push(BlockId::Air);
             }
         }
 
@@ -31,13 +29,13 @@ impl Chunk {
         for y in 0..CHUNK_HEIGHT {
             for z in 0..CHUNK_WIDTH {
                 for x in 0..CHUNK_WIDTH {
-                    // Check what sides are visible
-                    let sides = self.get_sides(i);
-                    // Only render vertices that the player sees
-                    let block_verteces = Block::get_vertices(x, y, -z, sides);
-                    for vertex in 0..block_verteces.len() {
-                        // Only render visible blocks, i.e. don't render Air blocks
-                        if self.value[&i].is_visible() {
+                    // Only render visible blocks, i.e. don't render Air blocks
+                    if self.value[i].is_visible() {
+                        // Check what sides are visible
+                        let sides = self.get_sides(i as i32);
+                        // Only render vertices that the player sees
+                        let block_verteces = Block::get_vertices(x, y, -z, sides);
+                        for vertex in 0..block_verteces.len() {
                             vertices.push(block_verteces[vertex]);
                         }
                     }
@@ -51,7 +49,7 @@ impl Chunk {
     fn get_sides(&self, i: i32) -> Sides {
         let max = CHUNK_WIDTH * CHUNK_WIDTH * CHUNK_HEIGHT;
 
-        let is_transparent = |offset: &i32| {
+        let is_transparent = |offset: usize| {
             return self.value[offset].is_transparent();
         };
 
@@ -61,7 +59,7 @@ impl Chunk {
                 return true;
             }
             // Else show left side if the block to the left is transparent.
-            return is_transparent(&(i - 1));
+            return is_transparent((i - 1) as usize);
         };
 
         let show_right = || {
@@ -70,39 +68,31 @@ impl Chunk {
                 return true;
             }
             // Else show right side if the block to the right is transparent.
-            return is_transparent(&(i + 1));
+            return is_transparent((i + 1) as usize);
         };
 
         let show_front = || {
             // Always show the frontmost sides
-            let res = match i % (CHUNK_WIDTH * CHUNK_WIDTH) {
-                0 => true,
-                1 => true,
-                2 => true,
-                3 => true,
-                _ => false
-            };
-            if res == true {
-                return res;
+            let floor = i / (CHUNK_WIDTH * CHUNK_WIDTH);
+            let end = ((floor + 1) * CHUNK_WIDTH * CHUNK_WIDTH) - (CHUNK_WIDTH * CHUNK_WIDTH) + CHUNK_WIDTH - 1;
+            if i >= end - CHUNK_WIDTH && i <= end {
+                return true;
+            }
+            
+            // Make sure we are not below zero.
+            if i - CHUNK_WIDTH < 0 {
+                return true;
             }
             // Else show front side if the block in front of it is transparent.
-            return is_transparent(&(i - CHUNK_WIDTH));
+            return is_transparent((i - CHUNK_WIDTH) as usize);
         };
 
         let show_back = || {
             // Always show the backmost sides
-            let mut cnt = 0;
-            let mut val: HashSet<i32> = HashSet::new();
 
-            while cnt < max {
-                val.insert(cnt + (CHUNK_WIDTH * CHUNK_WIDTH) - CHUNK_WIDTH);
-                val.insert(cnt + (CHUNK_WIDTH * CHUNK_WIDTH) - CHUNK_WIDTH + 1);
-                val.insert(cnt + (CHUNK_WIDTH * CHUNK_WIDTH) - CHUNK_WIDTH + 2);
-                val.insert(cnt + (CHUNK_WIDTH * CHUNK_WIDTH) - CHUNK_WIDTH + 3);
-                cnt += CHUNK_WIDTH * CHUNK_WIDTH;
-            }
-
-            if val.contains(&i) {
+            let floor = i / (CHUNK_WIDTH * CHUNK_WIDTH);
+            let end = (floor + 1) * CHUNK_WIDTH * CHUNK_WIDTH;
+            if i >= end - CHUNK_WIDTH && i <= end {
                 return true;
             }
 
@@ -113,7 +103,7 @@ impl Chunk {
             }
 
             // Else show the backside if the block behind it is transparent.
-            return is_transparent(&offset);
+            return is_transparent(offset as usize);
         };
 
         let show_top = || {
@@ -130,7 +120,7 @@ impl Chunk {
             }
 
             // Else show the topside if the block above it is transparent.
-            return is_transparent(&offset);
+            return is_transparent(offset as usize);
         };
 
         let show_bottom = || {
@@ -146,16 +136,16 @@ impl Chunk {
                 return false;
             }
             // Else show the bottomside if the block below it is transparent
-            return is_transparent(&offset);
+            return is_transparent(offset as usize);
         };
 
         return Sides { 
             left: show_left(), 
             right: show_right(),
             front: show_front(), 
-            back: show_back(), 
-            top: show_top(), 
-            bottom: show_bottom(), 
+            back:  show_back(), 
+            top:  show_top(), 
+            bottom:  show_bottom(), 
         };
     }
 }

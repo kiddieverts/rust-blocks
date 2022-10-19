@@ -2,7 +2,6 @@ extern crate glm;
 extern crate glium;
 extern crate stopwatch;
 
-use chunk::Chunk;
 use glium::{glutin::{self, dpi::{Position, LogicalPosition}}};
 
 use constants::{WINDOW_WIDTH, WINDOW_HEIGHT, TIME_BETWEEN_FRAMES};
@@ -26,8 +25,12 @@ fn main() {
     let texture = tex::get_texture(&shader.display);
 
     let mut time_passed = 0.0; // <--
-    
+
+    let mut calc = camera.get_calculation();
+
     stopwatch.start();
+
+    let vertices = chunk.get_vertices();
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = glutin::event_loop::ControlFlow::Poll;
@@ -56,13 +59,12 @@ fn main() {
                 camera.delta_time = time_passed.clone() - camera.last_frame;
                 camera.last_frame = time_passed.clone();
 
-                let vertices = chunk.get_vertices();
-
-                shader.render_block(&camera.get_calculation(), &texture, &vertices);
+                shader.render_block(&calc, &texture, &vertices);
                
                 // Check if more than ~16 ms. has passed
                 if (stopwatch.elapsed_ms() as u64) >= TIME_BETWEEN_FRAMES {
                     stopwatch.restart();
+                    calc = camera.get_calculation();
 
                     // Reset mouse cursor to the center of the screen
                     let position = Position::Logical(LogicalPosition::new(camera.window_width as f64  / 2.0, camera.window_height as f64  / 2.0));
