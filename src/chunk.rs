@@ -11,7 +11,7 @@ impl Chunk {
         let mut value: Vec<BlockId> = vec![];
 
         for i in 0..(CHUNK_WIDTH * CHUNK_WIDTH * CHUNK_HEIGHT) {
-            if i % 6 == 0 {
+            if i % 3 == 0 {
                 value.push(BlockId::Plank);
             }
             else {
