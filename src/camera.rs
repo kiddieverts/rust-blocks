@@ -2,7 +2,6 @@ use glium::{glutin::{event::VirtualKeyCode, self}};
 use glm::{Vector3, cos, sin, Matrix4};
 
 extern crate glm;
-
 pub struct Camera {
     pub position: Vector3<f32>,
     pub front: Vector3<f32>,

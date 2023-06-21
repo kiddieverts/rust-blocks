@@ -89,7 +89,6 @@ impl Chunk {
 
         let show_back = || {
             // Always show the backmost sides
-
             let floor = i / (CHUNK_WIDTH * CHUNK_WIDTH);
             let end = (floor + 1) * CHUNK_WIDTH * CHUNK_WIDTH;
             if i >= end - CHUNK_WIDTH && i <= end {

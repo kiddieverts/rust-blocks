@@ -24,7 +24,7 @@ fn main() {
     // We only have one texture for now
     let texture = tex::get_texture(&shader.display);
 
-    let mut time_passed = 0.0; // <--
+    let mut time_passed = 0.0;
 
     let mut calc = camera.get_calculation();
 
